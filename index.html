@@ -1,152 +1,257 @@
-/* src/intro.css */
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Intro Overlay + Cursor Particles</title>
+    <style>
+      :root { color-scheme: dark; }
 
-:root {
-  color-scheme: dark;
-}
+      html, body {
+        height: 100%;
+        margin: 0;
+        background: #07080a;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      }
 
-.app-root {
-  min-height: 100vh;
-  background: #07080a; /* dark/grainy base */
-}
+      /* Main content hidden until intro ends */
+      .page {
+        min-height: 100vh;
+        transition: opacity 520ms ease, filter 520ms ease;
+      }
+      .page.hidden {
+        opacity: 0;
+        filter: blur(6px);
+        pointer-events: none;
+        user-select: none;
+      }
+      .page.shown {
+        opacity: 1;
+        filter: blur(0);
+      }
 
-/* Main page hidden until intro completes */
-.page {
-  min-height: 100vh;
-  transition: opacity 520ms ease, filter 520ms ease;
-}
+      /* Intro overlay */
+      #intro {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: #000;
+        display: grid;
+        place-items: center;
+        cursor: default;
+        transition: opacity 520ms ease;
+        opacity: 0; /* will fade in */
+      }
+      #intro.in { opacity: 1; }
+      #intro.out { opacity: 0; }
 
-.page--hidden {
-  opacity: 0;
-  filter: blur(6px);
-  pointer-events: none;
-  user-select: none;
-}
+      .intro-content {
+        text-align: center;
+        padding: 24px;
+        user-select: none;
+      }
 
-.page--shown {
-  opacity: 1;
-  filter: blur(0);
-  pointer-events: auto;
-  user-select: auto;
-}
+      .intro-title {
+        font-size: clamp(20px, 2.4vw, 30px);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.88);
+        animation: introFadeIn 520ms ease both;
+      }
 
-/* Intro overlay */
-.intro {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: #000;
-  display: grid;
-  place-items: center;
-  cursor: default; /* keep cursor visible */
-  transition: opacity 520ms ease;
-  opacity: 0;
-}
+      @keyframes introFadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
 
-.intro--in {
-  opacity: 1;
-}
+      /* Particle layer */
+      #particle-layer {
+        position: fixed;
+        inset: 0;
+        z-index: 10000; /* above everything */
+        pointer-events: none;
+        overflow: hidden;
+      }
 
-.intro--out {
-  opacity: 0;
-}
+      .particle {
+        position: absolute;
+        border-radius: 999px;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        background: rgba(200,245,255,0.9);
+        box-shadow:
+          0 0 8px rgba(170,235,255,0.25),
+          0 0 18px rgba(120,220,255,0.18);
+        filter: blur(0.2px);
+        animation: particlePop var(--life) ease-out forwards;
+      }
 
-.intro__content {
-  text-align: center;
-  padding: 24px;
-  user-select: none;
-}
+      @keyframes particlePop {
+        0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.65); }
+        10%  { opacity: 0.85; }
+        100% {
+          opacity: 0;
+          transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.25);
+        }
+      }
 
-.intro__title {
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica,
-    Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  font-size: clamp(20px, 2.4vw, 30px);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.88);
-  animation: introFadeIn 520ms ease both;
-}
+      /* Demo profile styling */
+      .profile {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 72px 20px;
+      }
+      .profile h1 {
+        font-size: clamp(34px, 4vw, 56px);
+        margin: 0 0 12px;
+        color: rgba(255,255,255,0.92);
+        letter-spacing: -0.02em;
+      }
+      .profile p {
+        max-width: 58ch;
+        color: rgba(255,255,255,0.7);
+        line-height: 1.6;
+        margin: 0 0 22px;
+      }
+      .links {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+      .links a {
+        color: rgba(200,245,255,0.85);
+        text-decoration: none;
+        opacity: 0.9;
+        transition: opacity 180ms ease;
+      }
+      .links a:hover { opacity: 1; }
+    </style>
+  </head>
 
-@keyframes introFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+  <body>
+    <div id="particle-layer" aria-hidden="true"></div>
 
-/* Particle layer (works across intro + main) */
-.particle-layer {
-  position: fixed;
-  inset: 0;
-  z-index: 10000; /* above intro/main */
-  pointer-events: none; /* never blocks clicks */
-  overflow: hidden;
-}
+    <div id="intro" class="in" role="button" tabindex="0" aria-label="Click to enter">
+      <div class="intro-content">
+        <div class="intro-title">Click to enter</div>
+      </div>
+    </div>
 
-.particle {
-  position: absolute;
-  border-radius: 999px;
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  background: rgba(200, 245, 255, 0.9);
-  box-shadow:
-    0 0 8px rgba(170, 235, 255, 0.25),
-    0 0 18px rgba(120, 220, 255, 0.18);
-  filter: blur(0.2px);
-  animation: particlePop var(--life) ease-out forwards;
-}
+    <main id="page" class="page hidden" aria-hidden="true">
+      <section class="profile">
+        <h1>Dein Name</h1>
+        <p>Dunkle, minimalistische Profilseite. Ersetze das hier durch deinen echten Inhalt.</p>
+        <div class="links">
+          <a href="#work">Work</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
+        </div>
+      </section>
+    </main>
 
-@keyframes particlePop {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.65);
-  }
-  10% {
-    opacity: 0.85;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.25);
-  }
-}
+    <script>
+      (function () {
+        const intro = document.getElementById("intro");
+        const page = document.getElementById("page");
+        const particleLayer = document.getElementById("particle-layer");
 
-/* Example profile styling (remove if you already have yours) */
-.profile {
-  max-width: 920px;
-  margin: 0 auto;
-  padding: 72px 20px;
-}
+        // Disable scroll while intro is visible
+        const prevOverflow = document.body.style.overflow;
+        const prevHeight = document.body.style.height;
+        document.body.style.overflow = "hidden";
+        document.body.style.height = "100%";
 
-.profile__name {
-  font-size: clamp(34px, 4vw, 56px);
-  margin: 0 0 12px;
-  color: rgba(255, 255, 255, 0.92);
-  letter-spacing: -0.02em;
-}
+        // Ensure intro fades in (in case of initial paint timing)
+        requestAnimationFrame(() => intro.classList.add("in"));
 
-.profile__bio {
-  max-width: 58ch;
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1.6;
-  margin: 0 0 22px;
-}
+        let entered = false;
 
-.profile__links {
-  display: flex;
-  gap: 18px;
-  flex-wrap: wrap;
-}
+        function enter() {
+          if (entered) return;
+          entered = true;
 
-.profile__links a {
-  color: rgba(200, 245, 255, 0.85);
-  text-decoration: none;
-  opacity: 0.9;
-  transition: opacity 180ms ease;
-}
+          // fade out intro
+          intro.classList.remove("in");
+          intro.classList.add("out");
 
-.profile__links a:hover {
-  opacity: 1;
-}
+          // reveal page underneath
+          page.classList.remove("hidden");
+          page.classList.add("shown");
+          page.setAttribute("aria-hidden", "false");
+
+          // re-enable scroll after transition
+          window.setTimeout(() => {
+            intro.remove();
+            document.body.style.overflow = prevOverflow;
+            document.body.style.height = prevHeight;
+          }, 520);
+        }
+
+        intro.addEventListener("click", enter);
+        intro.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") enter();
+        });
+
+        // Cursor particles (absolute divs, lightweight)
+        let lastX = 0, lastY = 0;
+        let rafPending = false;
+
+        function spawnParticle(x, y) {
+          const el = document.createElement("span");
+          el.className = "particle";
+
+          const size = 2 + Math.random() * 3.5;          // 2–5.5px
+          const life = 520 + Math.random() * 360;         // 520–880ms
+          const spread = 10;
+
+          const px = x + (Math.random() - 0.5) * spread;
+          const py = y + (Math.random() - 0.5) * spread;
+
+          const dx = (Math.random() - 0.5) * 18;
+          const dy = -10 - Math.random() * 20;
+
+          el.style.left = px + "px";
+          el.style.top = py + "px";
+          el.style.width = size + "px";
+          el.style.height = size + "px";
+          el.style.setProperty("--life", life + "ms");
+          el.style.setProperty("--dx", dx + "px");
+          el.style.setProperty("--dy", dy + "px");
+
+          particleLayer.appendChild(el);
+
+          window.setTimeout(() => el.remove(), life + 80);
+        }
+
+        function onMove(e) {
+          lastX = e.clientX;
+          lastY = e.clientY;
+
+          if (rafPending) return;
+          rafPending = true;
+
+          requestAnimationFrame(() => {
+            rafPending = false;
+
+            // small burst but subtle
+            const count = (Math.random() < 0.25) ? 2 : 1;
+            for (let i = 0; i < count; i++) spawnParticle(lastX, lastY);
+
+            // hard cap
+            if (particleLayer.childElementCount > 180) {
+              // remove oldest extras
+              const excess = particleLayer.childElementCount - 140;
+              for (let i = 0; i < excess; i++) {
+                const first = particleLayer.firstElementChild;
+                if (!first) break;
+                first.remove();
+              }
+            }
+          });
+        }
+
+        window.addEventListener("mousemove", onMove, { passive: true });
+      })();
+    </script>
+  </body>
+</html>
