@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Intro Overlay</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intro</title>
 
 <style>
 :root { color-scheme: dark; }
@@ -12,118 +12,64 @@ html, body {
   margin: 0;
   height: 100%;
   background: #07080a;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 }
 
-/* ================= MAIN PAGE ================= */
+/* PAGE */
 .page {
   min-height: 100vh;
-  transition: opacity 520ms ease, filter 520ms ease;
-}
-.page.hidden {
   opacity: 0;
   filter: blur(6px);
+  transition: opacity 520ms ease, filter 520ms ease;
   pointer-events: none;
-  user-select: none;
 }
-.page.shown {
+.page.show {
   opacity: 1;
   filter: blur(0);
+  pointer-events: auto;
 }
 
-/* ================= INTRO OVERLAY ================= */
+/* INTRO */
 #intro {
   position: fixed;
   inset: 0;
-  z-index: 9999;
   background: #000;
   display: grid;
   place-items: center;
+  z-index: 9999;
   cursor: default;
-  opacity: 0;
   transition: opacity 520ms ease;
 }
-#intro.in { opacity: 1; }
-#intro.out { opacity: 0; }
+#intro.hide { opacity: 0; }
 
 .intro-text {
+  color: rgba(255,255,255,.9);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: .08em;
   font-size: clamp(20px, 2.4vw, 30px);
-  color: rgba(255,255,255,0.88);
-  animation: introFade 520ms ease both;
-  user-select: none;
 }
 
-@keyframes introFade {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ================= PARTICLES ================= */
+/* PARTICLES */
 #particles {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 10000;
-  overflow: hidden;
 }
-
 .particle {
   position: absolute;
-  border-radius: 999px;
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  background: rgba(200,245,255,0.9);
-  box-shadow:
-    0 0 8px rgba(170,235,255,0.25),
-    0 0 18px rgba(120,220,255,0.18);
-  animation: particleAnim var(--life) ease-out forwards;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(200,245,255,.9);
+  box-shadow: 0 0 10px rgba(150,220,255,.4);
+  transform: translate(-50%,-50%);
+  animation: fade 700ms ease-out forwards;
 }
-
-@keyframes particleAnim {
-  0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.6); }
-  10%  { opacity: 0.85; }
-  100% {
-    opacity: 0;
-    transform: translate(
-      calc(-50% + var(--dx)),
-      calc(-50% + var(--dy))
-    ) scale(1.3);
-  }
+@keyframes fade {
+  from { opacity: 1; }
+  to { opacity: 0; transform: translate(-50%,-80%); }
 }
-
-/* ================= DEMO CONTENT ================= */
-.profile {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 80px 24px;
-}
-
-.profile h1 {
-  font-size: clamp(36px, 4vw, 56px);
-  margin: 0 0 12px;
-  color: rgba(255,255,255,0.92);
-}
-
-.profile p {
-  max-width: 60ch;
-  color: rgba(255,255,255,0.7);
-  line-height: 1.6;
-}
-
-.links {
-  margin-top: 24px;
-  display: flex;
-  gap: 18px;
-}
-
-.links a {
-  color: rgba(200,245,255,0.85);
-  text-decoration: none;
-  opacity: 0.9;
-}
-.links a:hover { opacity: 1; }
 </style>
 </head>
 
@@ -131,84 +77,38 @@ html, body {
 
 <div id="particles"></div>
 
-<div id="intro" class="in" tabindex="0">
+<div id="intro">
   <div class="intro-text">Click to enter</div>
 </div>
 
-<main id="page" class="page hidden">
-  <section class="profile">
-    <h1>Dein Name</h1>
-    <p>Minimalistische Profilseite mit Intro Overlay und Cursor-Partikeln.</p>
-    <div class="links">
-      <a href="#">Work</a>
-      <a href="#">About</a>
-      <a href="#">Contact</a>
-    </div>
-  </section>
+<main class="page" id="page">
+  <h1 style="color:white;padding:80px">Profilseite</h1>
 </main>
 
 <script>
-(() => {
-  const intro = document.getElementById("intro");
-  const page = document.getElementById("page");
-  const particles = document.getElementById("particles");
+const intro = document.getElementById("intro");
+const page = document.getElementById("page");
+const particles = document.getElementById("particles");
 
-  document.body.style.overflow = "hidden";
+document.body.style.overflow = "hidden";
 
-  function enter() {
-    intro.classList.remove("in");
-    intro.classList.add("out");
+intro.onclick = () => {
+  intro.classList.add("hide");
+  page.classList.add("show");
+  setTimeout(() => {
+    intro.remove();
+    document.body.style.overflow = "";
+  }, 520);
+};
 
-    page.classList.remove("hidden");
-    page.classList.add("shown");
-
-    setTimeout(() => {
-      intro.remove();
-      document.body.style.overflow = "";
-    }, 520);
-  }
-
-  intro.addEventListener("click", enter);
-  intro.addEventListener("keydown", e => {
-    if (e.key === "Enter" || e.key === " ") enter();
-  });
-
-  /* ===== Cursor particles ===== */
-  let raf = false;
-  let mx = 0, my = 0;
-
-  function spawn(x, y) {
-    const p = document.createElement("span");
-    p.className = "particle";
-
-    const size = 2 + Math.random() * 3.5;
-    const life = 520 + Math.random() * 360;
-
-    p.style.width = size + "px";
-    p.style.height = size + "px";
-    p.style.left = x + "px";
-    p.style.top = y + "px";
-    p.style.setProperty("--life", life + "ms");
-    p.style.setProperty("--dx", (Math.random() - 0.5) * 20 + "px");
-    p.style.setProperty("--dy", (-10 - Math.random() * 20) + "px");
-
-    particles.appendChild(p);
-    setTimeout(() => p.remove(), life + 80);
-  }
-
-  window.addEventListener("mousemove", e => {
-    mx = e.clientX;
-    my = e.clientY;
-    if (raf) return;
-    raf = true;
-
-    requestAnimationFrame(() => {
-      raf = false;
-      spawn(mx, my);
-      if (Math.random() < 0.25) spawn(mx, my);
-    });
-  }, { passive: true });
-})();
+window.addEventListener("mousemove", e => {
+  const p = document.createElement("div");
+  p.className = "particle";
+  p.style.left = e.clientX + "px";
+  p.style.top = e.clientY + "px";
+  particles.appendChild(p);
+  setTimeout(() => p.remove(), 700);
+});
 </script>
 
 </body>
